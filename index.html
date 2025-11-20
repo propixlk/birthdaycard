@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FAS Birthday Wish Generator - RUSL</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); /* Modern Purple Gradient */
+        }
+        canvas {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="container mx-auto max-w-6xl grid grid-cols-1 lg:grid-cols-2 gap-8">
+        
+        <!-- Input Section -->
+        <div class="bg-white/95 backdrop-blur-sm p-8 rounded-2xl shadow-2xl border border-white/20">
+            <div class="text-center mb-6">
+                <img src="https://upload.wikimedia.org/wikipedia/en/3/39/Rajarata_University_of_Sri_Lanka_logo.png" 
+                     onerror="this.style.display='none'" 
+                     alt="RUSL Logo" 
+                     class="h-20 mx-auto mb-2 drop-shadow-md">
+                <h1 class="text-3xl font-bold text-gray-800">Birthday Card Generator</h1>
+                <p class="text-sm text-purple-600 font-semibold">Faculty Name</p>
+            </div>
+
+            <div class="space-y-5">
+                <!-- Name Input -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Name</label>
+                    <input type="text" id="inputName" placeholder="Name Here" 
+                           class="w-full px-4 py-3 border-2 border-purple-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none transition bg-purple-50/30">
+                </div>
+
+                <!-- Department Select -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Department</label>
+                    <select id="inputDept" class="w-full px-4 py-3 border-2 border-purple-100 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 outline-none bg-white cursor-pointer">
+                        <option value="Faculty of Applied Sciences">Select Department</option>
+                        <option value="Department of Computing">Department of Computing</option>
+                        <option value="Department of Biological Sciences">Department of Biological Sciences</option>
+                        <option value="Department of Physical Sciences">Department of Physical Sciences</option>
+                        <option value="Department of Health Promotion">Department of Health Promotion</option>
+                        
+                    </select>
+                </div>
+
+                <!-- Photo Upload -->
+                <div>
+                    <label class="block text-sm font-bold text-gray-700 mb-1">Upload Photo</label>
+                    <div class="flex items-center justify-center w-full">
+                        <label for="inputPhoto" class="flex flex-col items-center justify-center w-full h-36 border-2 border-purple-300 border-dashed rounded-xl cursor-pointer bg-purple-50 hover:bg-purple-100 transition group">
+                            <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                <svg class="w-10 h-10 mb-3 text-purple-400 group-hover:text-purple-600 transition" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
+                                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
+                                </svg>
+                                <p class="text-sm text-gray-500 group-hover:text-gray-700"><span class="font-semibold">Click to upload</span> photo</p>
+                                <p class="text-xs text-gray-400">Square photos work best</p>
+                            </div>
+                            <input id="inputPhoto" type="file" class="hidden" accept="image/*" />
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="grid grid-cols-2 gap-4 pt-2">
+                    <button onclick="generateCard()" class="bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg hover:shadow-purple-500/30 transform hover:-translate-y-0.5">
+                        Refresh Preview
+                    </button>
+                    <button onclick="downloadCard()" class="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-4 rounded-xl transition shadow-lg hover:shadow-emerald-500/30 transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-5 h-5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+                        </svg>
+                        Download
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Section -->
+        <div class="flex items-center justify-center bg-white/10 backdrop-blur-md rounded-2xl border border-white/20 p-6 shadow-2xl">
+            <canvas id="cardCanvas" width="800" height="1000" class="rounded-xl shadow-black/20"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Canvas Variables
+        const canvas = document.getElementById('cardCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // State
+        let uploadedImage = null;
+        let confettiPieces = []; 
+
+        // Init
+        window.onload = function() {
+            initConfetti();
+            // Load fonts ensuring they are ready before drawing
+            Promise.all([
+                document.fonts.load('bold 40px "Poppins"'),
+                document.fonts.load('40px "Great Vibes"')
+            ]).then(() => {
+                drawCard();
+            });
+        };
+
+        // Handle Photo Upload
+        document.getElementById('inputPhoto').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    const img = new Image();
+                    img.onload = function() {
+                        uploadedImage = img;
+                        drawCard();
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function initConfetti() {
+            const colors = ["#C084FC", "#F472B6", "#FCD34D", "#60A5FA", "#34D399"];
+            confettiPieces = [];
+            for (let i = 0; i < 200; i++) {
+                confettiPieces.push({
+                    x: Math.random() * 800,
+                    y: Math.random() * 1000,
+                    color: colors[Math.floor(Math.random() * colors.length)],
+                    size: Math.random() * 10 + 5,
+                    type: Math.random() > 0.6 ? 'circle' : 'rect',
+                    rotation: Math.random() * 360,
+                    opacity: Math.random() * 0.5 + 0.1
+                });
+            }
+        }
+
+        function drawBackground() {
+            // 1. Gradient Background
+            const grad = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
+            grad.addColorStop(0, "#fff1eb"); // Light pinkish white
+            grad.addColorStop(1, "#ace0f9"); // Light blueish white
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // 2. Confetti
+            ctx.save();
+            confettiPieces.forEach(p => {
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = 0.25; 
+                
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rotation * Math.PI / 180);
+
+                if (p.type === 'circle') {
+                    ctx.beginPath();
+                    ctx.arc(0, 0, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                } else {
+                    ctx.fillRect(-p.size/2, -p.size/2, p.size, p.size);
+                }
+                
+                ctx.rotate(-p.rotation * Math.PI / 180);
+                ctx.translate(-p.x, -p.y);
+            });
+            ctx.restore();
+
+            // 3. Overlay Texture (Optional noise/pattern for quality feel)
+            ctx.fillStyle = "rgba(255, 255, 255, 0.3)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function drawCard() {
+            drawBackground();
+
+            // --- DECORATIONS ---
+            
+            // Top Decorative Wave
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(canvas.width, 0);
+            ctx.lineTo(canvas.width, 220);
+            ctx.bezierCurveTo(canvas.width * 0.75, 280, canvas.width * 0.25, 120, 0, 220);
+            ctx.closePath();
+            
+            const topGrad = ctx.createLinearGradient(0, 0, canvas.width, 0);
+            topGrad.addColorStop(0, "#5b21b6"); // Dark Purple
+            topGrad.addColorStop(1, "#7c3aed"); // Violet
+            ctx.fillStyle = topGrad;
+            ctx.fill();
+
+            // Add gold accent line under wave
+            ctx.beginPath();
+            ctx.moveTo(0, 230); // Slightly below the main wave start (approx)
+            // Mimic the curve slightly offset or just a simple accent
+            // Let's do a simple curved stroke
+            ctx.strokeStyle = "#FCD34D"; // Gold
+            ctx.lineWidth = 5;
+            ctx.beginPath();
+             ctx.moveTo(0, 225);
+             ctx.bezierCurveTo(canvas.width * 0.25, 125, canvas.width * 0.75, 285, canvas.width, 225);
+            ctx.stroke();
+
+
+            // Bottom Decorative Strip
+            ctx.fillStyle = "#4c1d95";
+            ctx.fillRect(0, canvas.height - 50, canvas.width, 50);
+            ctx.fillStyle = "#FCD34D"; 
+            ctx.fillRect(0, canvas.height - 55, canvas.width, 5); // Gold line on top of footer
+
+            // --- CONTENT ---
+
+            // Happy Birthday Text
+            ctx.fillStyle = "#FFD700"; // Gold
+            ctx.font = "110px 'Great Vibes'";
+            ctx.textAlign = "center";
+            ctx.shadowColor = "rgba(0,0,0,0.4)";
+            ctx.shadowBlur = 15;
+            ctx.shadowOffsetX = 2;
+            ctx.shadowOffsetY = 2;
+            ctx.fillText("Happy Birthday", canvas.width / 2, 150);
+            
+            // Reset Shadow for other elements
+            ctx.shadowColor = "transparent";
+            ctx.shadowBlur = 0;
+            ctx.shadowOffsetX = 0;
+            ctx.shadowOffsetY = 0;
+
+            // PHOTO AREA
+            // Moved up slightly to make room for footer
+            const centerX = canvas.width / 2;
+            const centerY = 400; // Moved up from 420
+            const radius = 170;  // Slightly smaller to be elegant
+
+            // Circle Border/Glow
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius + 10, 0, Math.PI * 2, true);
+            ctx.fillStyle = "rgba(255, 255, 255, 0.8)";
+            ctx.fill();
+            
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            ctx.closePath();
+            // White bg behind photo
+            ctx.save();
+            ctx.fillStyle = "#FFFFFF";
+            ctx.fill();
+            ctx.restore();
+            ctx.clip();
+
+            if (uploadedImage) {
+                const scale = Math.max(radius * 2 / uploadedImage.width, radius * 2 / uploadedImage.height);
+                const x = centerX - (uploadedImage.width / 2) * scale;
+                const y = centerY - (uploadedImage.height / 2) * scale;
+                ctx.drawImage(uploadedImage, x, y, uploadedImage.width * scale, uploadedImage.height * scale);
+            } else {
+                // Placeholder
+                ctx.fillStyle = "#f3f4f6";
+                ctx.fillRect(centerX - radius, centerY - radius, radius * 2, radius * 2);
+                ctx.fillStyle = "#9ca3af";
+                ctx.font = "bold 24px Poppins";
+                ctx.fillText("Upload Photo", centerX, centerY);
+            }
+            ctx.restore();
+
+            // Gold Border Ring
+            ctx.beginPath();
+            ctx.arc(centerX, centerY, radius, 0, Math.PI * 2, true);
+            ctx.lineWidth = 8;
+            ctx.strokeStyle = "#FCD34D";
+            ctx.stroke();
+
+
+            // NAME & WISH
+            const name = document.getElementById('inputName').value || "Name Here";
+            
+            // Name
+            ctx.fillStyle = "#4c1d95"; // Deep Purple
+            ctx.font = "bold 55px 'Poppins'";
+            ctx.fillText(name, canvas.width / 2, 660); // Moved up
+
+            // Wish Paragraph
+            ctx.fillStyle = "#4b5563";
+            ctx.font = "italic 26px 'Poppins'";
+            const wishText = "Wishing you a day filled with happiness and a year filled with joy. May all your dreams come true!";
+            wrapText(ctx, wishText, canvas.width / 2, 720, 650, 38); // Moved up
+
+            // --- FOOTER DETAILS ---
+            const dept = document.getElementById('inputDept').value;
+            const deptText = (dept && dept !== "Faculty of Applied Sciences") ? dept : "";
+
+            // Separator Line (Moved up to 830)
+            ctx.beginPath();
+            ctx.moveTo(150, 830);
+            ctx.lineTo(650, 830);
+            ctx.lineWidth = 3;
+            ctx.lineCap = "round";
+            ctx.strokeStyle = "#d8b4fe"; // Light purple line
+            ctx.stroke();
+
+            // Department Name
+            // We fix the hiding issue by allocating specific Y positions
+            if (deptText) {
+                ctx.fillStyle = "#6b21a8"; // Purple 800
+                ctx.font = "700 32px 'Poppins'";
+                ctx.fillText(deptText, canvas.width / 2, 880);
+            }
+
+            // Faculty Text
+            // If Dept exists, Faculty goes lower (920). If not, it sits higher (900)
+            ctx.fillStyle = "#1f2937"; 
+            ctx.font = "600 26px 'Poppins'";
+            const facultyY = deptText ? 925 : 890;
+            ctx.fillText("Faculty of Your Faculty", canvas.width / 2, facultyY);
+            
+            // University Text
+            ctx.font = "500 22px 'Poppins'";
+            ctx.fillStyle = "#374151"; 
+            const uniY = deptText ? 960 : 925;
+            ctx.fillText("Your University of Your Country", canvas.width / 2, uniY);
+        }
+
+        // Helper: Text Wrapping
+        function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
+            var words = text.split(' ');
+            var line = '';
+
+            for(var n = 0; n < words.length; n++) {
+                var testLine = line + words[n] + ' ';
+                var metrics = ctx.measureText(testLine);
+                var testWidth = metrics.width;
+                if (testWidth > maxWidth && n > 0) {
+                    ctx.fillText(line, x, y);
+                    line = words[n] + ' ';
+                    y += lineHeight;
+                }
+                else {
+                    line = testLine;
+                }
+            }
+            ctx.fillText(line, x, y);
+        }
+
+        function generateCard() {
+            // Re-init confetti for a fresh look on generate
+            initConfetti(); 
+            drawCard();
+        }
+
+        function downloadCard() {
+            const link = document.createElement('a');
+            const name = document.getElementById('inputName').value || "Birthday_Card";
+            link.download = `${name.replace(/\s+/g, '_')}_RUSL_Wish.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+
+        // Live Update Listeners
+        document.getElementById('inputName').addEventListener('input', drawCard);
+        document.getElementById('inputDept').addEventListener('change', drawCard);
+
+    </script>
+</body>
+</html>
